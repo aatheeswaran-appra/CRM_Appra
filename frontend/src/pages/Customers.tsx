@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   User,
@@ -15,11 +15,14 @@ import { PhoneInput } from '../components/common/PhoneInput';
 import { Textarea } from '../components/common/Textarea';
 import { Select } from '../components/common/Select';
 import { customerService } from '../services/customerService';
-import { followUpService } from '../services/followUpService';
+import { CustomerList } from '../components/customers/CustomerList';
+import { customerErrorMessage, customerSources, validateCustomer } from '../utils/customerForm';
 import type { CreateCustomerInput, LeadSource, PreferredContact } from '../types/customer';
 
 export const Customers: React.FC = () => {
   const navigate = useNavigate();
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const [listVersion, setListVersion] = useState(0);
 
   // Form State
   const [formData, setFormData] = useState<CreateCustomerInput>({
@@ -39,14 +42,11 @@ export const Customers: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const sourceOptions = [
-    { value: 'Website', label: 'Website' },
-    { value: 'WhatsApp', label: 'WhatsApp' },
-    { value: 'Referral', label: 'Referral' },
-    { value: 'Instagram', label: 'Instagram' },
-    { value: 'Call', label: 'Call' },
-    { value: 'Other', label: 'Other' },
-  ];
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timeout = window.setTimeout(() => setToastMessage(null), 4000);
+    return () => window.clearTimeout(timeout);
+  }, [toastMessage]);
 
   const handleInputChange = (
     field: keyof CreateCustomerInput,
@@ -63,10 +63,7 @@ export const Customers: React.FC = () => {
   };
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-    if (!formData.name.trim()) newErrors.name = 'Customer name is required';
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    if (!formData.requirement.trim()) newErrors.requirement = 'Requirement details are required';
+    const newErrors = validateCustomer(formData);
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -74,6 +71,7 @@ export const Customers: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setApiError(null);
     if (!validateForm()) return;
 
@@ -91,21 +89,8 @@ export const Customers: React.FC = () => {
         preferredContact: formData.preferredContact,
       });
 
-      // If follow-up date/time is specified, schedule follow-up via followUpService
-      if (formData.nextFollowUpDate && formData.nextFollowUpTime) {
-        await followUpService.createFollowUp({
-          time: formData.nextFollowUpTime,
-          date: formData.nextFollowUpDate,
-          customerId: savedCustomer.id,
-          customerName: savedCustomer.name,
-          requirement: savedCustomer.requirement,
-          phone: savedCustomer.phone,
-          status: 'Due Today',
-          preferredContact: formData.preferredContact,
-        }).catch(() => {
-          // Continue even if secondary schedule endpoint fails
-        });
-      }
+      // Customer creation also schedules its initial follow-up atomically.
+      setListVersion((version) => version + 1);
 
       setToastMessage(`Customer "${savedCustomer.name}" saved successfully!`);
 
@@ -122,12 +107,8 @@ export const Customers: React.FC = () => {
         preferredContact: 'WhatsApp',
       });
 
-      setTimeout(() => {
-        setToastMessage(null);
-        navigate('/follow-ups');
-      }, 1200);
-    } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Unable to save customer. Please try again.';
+    } catch (err: unknown) {
+      const msg = customerErrorMessage(err, 'Unable to save customer. Please try again.');
       setApiError(msg);
     } finally {
       setIsSubmitting(false);
@@ -142,7 +123,7 @@ export const Customers: React.FC = () => {
     <div className="p-4 sm:p-6 lg:p-7 max-w-[1000px] mx-auto space-y-6">
       {/* Toast feedback */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-emerald-600 text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-xl flex items-center gap-2 animate-in slide-in-from-top-3">
+        <div role="status" className="fixed top-5 right-5 z-50 bg-emerald-600 text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-xl flex items-center gap-2 animate-in slide-in-from-top-3">
           <Check className="w-4 h-4" />
           {toastMessage}
         </div>
@@ -152,10 +133,10 @@ export const Customers: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-            Add Customer
+            Customers
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Add a new customer with essential details.
+            Add new customers and manage their details below.
           </p>
         </div>
 
@@ -171,11 +152,11 @@ export const Customers: React.FC = () => {
             Cancel
           </Button>
           <Button
-            type="button"
+            type="submit"
             variant="primary"
             size="md"
             icon={<Plus className="w-4 h-4" />}
-            onClick={handleSubmit}
+            form="create-customer-form"
             loading={isSubmitting}
             className="text-xs font-semibold px-4"
           >
@@ -186,7 +167,7 @@ export const Customers: React.FC = () => {
 
       {/* API Error Alert */}
       {apiError && (
-        <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-start gap-2.5 text-xs text-rose-700 animate-in fade-in duration-150">
+        <div role="alert" className="p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-start gap-2.5 text-xs text-rose-700 animate-in fade-in duration-150">
           <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
           <span>{apiError}</span>
         </div>
@@ -194,7 +175,7 @@ export const Customers: React.FC = () => {
 
       {/* Main Form Container Card */}
       <div className="bg-white border border-slate-200/80 rounded-xl shadow-xs p-6 sm:p-8 space-y-8">
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form id="create-customer-form" onSubmit={handleSubmit} className="space-y-8">
           {/* SECTION 1: Basic Details */}
           <div className="space-y-5">
             <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
@@ -206,6 +187,8 @@ export const Customers: React.FC = () => {
               {/* Name */}
               <Input
                 label="Name"
+                ref={nameInputRef}
+                maxLength={120}
                 requiredStar
                 placeholder="Enter customer name"
                 value={formData.name}
@@ -216,6 +199,7 @@ export const Customers: React.FC = () => {
               {/* Phone Number */}
               <PhoneInput
                 label="Phone Number"
+                maxLength={32}
                 requiredStar
                 placeholder="Enter phone number"
                 value={formData.phone}
@@ -226,6 +210,7 @@ export const Customers: React.FC = () => {
               {/* Requirement */}
               <Textarea
                 label="Requirement"
+                maxLength={500}
                 requiredStar
                 rows={3}
                 placeholder="Enter requirement (e.g. Website, Digital Marketing, etc.)"
@@ -239,13 +224,14 @@ export const Customers: React.FC = () => {
                 <Select
                   label="Source"
                   placeholder="Select source"
-                  options={sourceOptions}
+                  options={customerSources}
                   value={formData.source || ''}
                   onChange={(e) => handleInputChange('source', e.target.value as LeadSource)}
                 />
 
                 <Input
                   label="Location"
+                  maxLength={200}
                   placeholder="Enter location (optional)"
                   value={formData.location || ''}
                   onChange={(e) => handleInputChange('location', e.target.value)}
@@ -255,6 +241,7 @@ export const Customers: React.FC = () => {
               {/* Notes */}
               <Textarea
                 label="Notes"
+                maxLength={10000}
                 rows={3}
                 placeholder="Any additional notes (optional)"
                 value={formData.notes || ''}
@@ -283,9 +270,8 @@ export const Customers: React.FC = () => {
                 />
 
                 <Input
-                  type="text"
+                  type="time"
                   label="Next Follow-up Time"
-                  placeholder="e.g. 10:30 AM"
                   rightIcon={<Clock className="w-4 h-4 text-slate-400 pointer-events-none" />}
                   value={formData.nextFollowUpTime || ''}
                   onChange={(e) => handleInputChange('nextFollowUpTime', e.target.value)}
@@ -321,6 +307,12 @@ export const Customers: React.FC = () => {
           </div>
         </form>
       </div>
+
+      <CustomerList
+        key={listVersion}
+        onAdd={() => nameInputRef.current?.focus()}
+        onFeedback={setToastMessage}
+      />
     </div>
   );
 };

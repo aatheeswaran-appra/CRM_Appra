@@ -1,7 +1,11 @@
 import { customerApi } from '../api/customerApi';
-import type { Customer, CreateCustomerInput, UpdateCustomerInput } from '../types/customer';
+import type { Customer, CreateCustomerInput, UpdateCustomerInput, CustomerListQuery, CustomerPage } from '../types/customer';
 
 export const customerService = {
+  async getCustomerPage(query: CustomerListQuery): Promise<CustomerPage> {
+    return await customerApi.getCustomerPage(query);
+  },
+
   async getCustomers(): Promise<Customer[]> {
     return await customerApi.getCustomers();
   },

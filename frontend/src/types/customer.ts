@@ -13,6 +13,7 @@ export interface Customer {
   notes?: string;
   status: CustomerStatus | string;
   createdAt: string;
+  updatedAt?: string;
   relativeTime?: string;
   nextFollowUpDate?: string;
   nextFollowUpTime?: string;
@@ -34,4 +35,21 @@ export interface CreateCustomerInput {
 
 export interface UpdateCustomerInput extends Partial<CreateCustomerInput> {
   status?: CustomerStatus | string;
+}
+
+export interface CustomerListQuery {
+  page: number;
+  limit: number;
+  search?: string;
+  status?: string;
+}
+
+export interface CustomerPage {
+  data: Customer[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }

@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Customer, CreateCustomerInput, UpdateCustomerInput } from '../types/customer';
+import type { Customer, CreateCustomerInput, UpdateCustomerInput, CustomerListQuery, CustomerPage } from '../types/customer';
 
 const STATUS_TO_FRONTEND: Record<string, string> = {
   NEW: 'New',
@@ -93,6 +93,7 @@ function mapBackendCustomer(item: any): Customer {
     notes: item.notes || '',
     status: STATUS_TO_FRONTEND[item.status] || item.status || 'New',
     createdAt: item.createdAt || new Date().toISOString(),
+    updatedAt: item.updatedAt,
     relativeTime: formatRelativeTime(item.createdAt),
     avatarColor: getAvatarColor(item.name || ''),
     nextFollowUpDate: item.nextFollowUpAt ? item.nextFollowUpAt.slice(0, 10) : undefined,
@@ -100,6 +101,21 @@ function mapBackendCustomer(item: any): Customer {
 }
 
 export const customerApi = {
+  async getCustomerPage(query: CustomerListQuery): Promise<CustomerPage> {
+    const response = await apiClient.get('/customers', {
+      params: {
+        page: query.page,
+        limit: query.limit,
+        search: query.search || undefined,
+        status: query.status ? STATUS_TO_BACKEND[query.status] || query.status : undefined,
+      },
+    });
+    return {
+      data: response.data.data.map(mapBackendCustomer),
+      pagination: response.data.pagination,
+    };
+  },
+
   async getCustomers(): Promise<Customer[]> {
     const response = await apiClient.get('/customers');
     const rawList = response.data?.data || (Array.isArray(response.data) ? response.data : []);
