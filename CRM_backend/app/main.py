@@ -44,7 +44,7 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["Content-Type", "Accept"],
+        allow_headers=["Content-Type", "Accept", "Authorization"],
         expose_headers=["Content-Disposition"],
     )
     register_errors(app)

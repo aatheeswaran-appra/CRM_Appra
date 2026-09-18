@@ -5,11 +5,12 @@ from datetime import UTC, datetime, time, timedelta
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
+from app.auth import hash_password
 from app.config import get_settings
 from app.database import make_engine
 from app.dates import business_date, combine_date_time, month_range
 from app.enums import ContactMethod, FollowUpStatus, LeadSource, LeadStatus
-from app.models import Customer, FollowUp
+from app.models import Customer, FollowUp, User
 
 NAMES = ["Arun Kumar", "Priya S", "Rajesh Kumar", "Vignesh", "Abi", "Naveen", "Suresh", "Divya"]
 REQUIREMENTS = [
@@ -33,6 +34,18 @@ def seed(session: Session, now: datetime) -> int:
     created = 0
     with session.begin():
         session.execute(text("SELECT pg_advisory_xact_lock(684731520)"))
+        demo_email = "demo@appracrm.com"
+        if not session.scalar(select(User.id).where(User.email == demo_email)):
+            demo_user = User(
+                name="Demo User",
+                email=demo_email,
+                phone="+919876543210",
+                password_hash=hash_password("Demo@12345"),
+                role="Administrator",
+                created_at=now,
+                last_login_at=now,
+            )
+            session.add(demo_user)
         for index in range(32):
             phone = f"+91900000{index:04d}"
             name = NAMES[index % len(NAMES)] + (f" {index // 8 + 1}" if index >= 8 else "")

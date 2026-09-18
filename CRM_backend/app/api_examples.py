@@ -153,6 +153,45 @@ SUCCESS_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
         }
     },
     ("/api/reports", "get"): {"data": REPORT},
+    ("/api/auth/login", "post"): {
+        "user": {
+            "id": "1",
+            "name": "Demo User",
+            "email": "demo@appracrm.com",
+            "phone": "+919876543210",
+            "role": "Administrator",
+            "avatarInitials": "DU",
+            "createdAt": "2026-09-18T04:00:00Z",
+            "lastLoginAt": "2026-09-18T04:00:00Z",
+        },
+        "token": "demo_session_token_sample",
+        "message": "Login successful",
+    },
+    ("/api/auth/signup", "post"): {
+        "user": {
+            "id": "2",
+            "name": "Arun Kumar",
+            "email": "arun@example.com",
+            "phone": "+919876543210",
+            "role": "Administrator",
+            "avatarInitials": "AK",
+            "createdAt": "2026-09-18T04:00:00Z",
+            "lastLoginAt": "2026-09-18T04:00:00Z",
+        },
+        "token": "demo_session_token_sample",
+        "message": "Account created successfully",
+    },
+    ("/api/auth/me", "get"): {
+        "id": "1",
+        "name": "Demo User",
+        "email": "demo@appracrm.com",
+        "phone": "+919876543210",
+        "role": "Administrator",
+        "avatarInitials": "DU",
+        "createdAt": "2026-09-18T04:00:00Z",
+        "lastLoginAt": "2026-09-18T04:00:00Z",
+    },
+    ("/api/auth/logout", "post"): {"message": "Logged out successfully"},
 }
 
 REQUEST_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
@@ -166,6 +205,17 @@ REQUEST_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
     },
     ("/api/follow-ups/{id}", "patch"): {"notes": "Send proposal", "preferredContact": "CALL"},
     ("/api/follow-ups/{id}/reschedule", "patch"): {"date": "2026-09-22", "time": "15:30"},
+    ("/api/auth/login", "post"): {
+        "email": "demo@appracrm.com",
+        "password": "Demo@12345",
+        "rememberMe": True,
+    },
+    ("/api/auth/signup", "post"): {
+        "name": "Arun Kumar",
+        "email": "arun@example.com",
+        "phone": "+919876543210",
+        "password": "SecurePassword123",
+    },
 }
 
 

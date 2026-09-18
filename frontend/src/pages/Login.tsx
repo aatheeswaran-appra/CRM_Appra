@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, AlertCircle, KeyRound } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
-import { DEMO_CREDENTIALS } from '../config/demoAuth';
 
 export const Login: React.FC = () => {
   const { login } = useAuth();
@@ -61,13 +60,6 @@ export const Login: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleUseDemoAccount = () => {
-    setEmail(DEMO_CREDENTIALS.email);
-    setPassword(DEMO_CREDENTIALS.password);
-    setErrors({});
-    setApiError(null);
   };
 
   return (
@@ -187,28 +179,6 @@ export const Login: React.FC = () => {
             {isSubmitting ? 'Signing In...' : 'Sign In'}
           </Button>
         </form>
-
-        {/* Temporary Demo Account Helper (Discrete) */}
-        <div className="p-3.5 bg-slate-50 border border-slate-200/70 rounded-xl space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-              <KeyRound className="w-3.5 h-3.5 text-blue-600" />
-              <span>Demo Account</span>
-            </div>
-            <button
-              type="button"
-              onClick={handleUseDemoAccount}
-              className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200/60 transition-colors cursor-pointer"
-            >
-              Use Demo Account
-            </button>
-          </div>
-
-          <div className="text-[11px] text-slate-500 space-y-0.5 font-mono">
-            <div>Email: <span className="text-slate-800 font-medium">{DEMO_CREDENTIALS.email}</span></div>
-            <div>Password: <span className="text-slate-800 font-medium">{DEMO_CREDENTIALS.password}</span></div>
-          </div>
-        </div>
 
         {/* Footer Link */}
         <div className="pt-3 border-t border-slate-100 text-center text-xs text-slate-500">

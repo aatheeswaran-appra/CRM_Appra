@@ -407,3 +407,38 @@ class ReportOut(ApiModel):
 
 class HealthOut(ApiModel):
     status: Literal["ok"] = "ok"
+
+
+class LoginInput(ApiModel):
+    email: str = Field(min_length=3, max_length=255, examples=["demo@appracrm.com"])
+    password: str = Field(min_length=1, max_length=128, examples=["Demo@12345"])
+    remember_me: bool = False
+
+
+class SignupInput(ApiModel):
+    name: str = Field(min_length=1, max_length=120, examples=["Arun Kumar"])
+    email: str = Field(min_length=3, max_length=255, examples=["arun@example.com"])
+    phone: str = Field(default="", max_length=32, examples=["+919876543210"])
+    password: str = Field(min_length=6, max_length=128, examples=["Secure@12345"])
+
+
+class UserOut(ApiModel):
+    id: str = Field(examples=["1"])
+    name: str
+    email: str
+    phone: str | None = None
+    role: str = "Administrator"
+    avatar_initials: str = Field(examples=["AK"])
+    created_at: datetime
+    last_login_at: datetime | None = None
+
+
+class AuthOut(ApiModel):
+    user: UserOut
+    token: str
+    message: str = "Success"
+
+
+class LogoutOut(ApiModel):
+    message: str = "Logged out successfully"
+

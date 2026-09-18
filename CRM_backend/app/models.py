@@ -86,3 +86,41 @@ class FollowUp(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     customer: Mapped[Customer] = relationship(back_populates="follow_ups")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), index=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    phone: Mapped[str | None] = mapped_column(String(32))
+    password_hash: Mapped[str] = mapped_column(String(255))
+    role: Mapped[str] = mapped_column(
+        String(50), default="Administrator", server_default="Administrator"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), index=True
+    )
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    logins: Mapped[list["LoginRecord"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan", passive_deletes=True
+    )
+
+
+class LoginRecord(Base):
+    __tablename__ = "login_records"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    email: Mapped[str] = mapped_column(String(255), index=True)
+    status: Mapped[str] = mapped_column(String(50), default="SUCCESS")
+    ip_address: Mapped[str | None] = mapped_column(String(50))
+    user_agent: Mapped[str | None] = mapped_column(String(500))
+    logged_in_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), index=True
+    )
+    user: Mapped[User | None] = relationship(back_populates="logins")
+

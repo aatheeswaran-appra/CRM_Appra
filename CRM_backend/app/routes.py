@@ -1,10 +1,14 @@
 import re
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Path, Query, Response
+from fastapi import APIRouter, HTTPException, Path, Query, Request, Response
+from sqlalchemy import func, select
 
+from app.auth import create_token, hash_password, verify_password
 from app.database import NowDep, SessionDep
+from app.models import LoginRecord, User
 from app.schemas import (
+    AuthOut,
     CalendarQuery,
     CustomerCreate,
     CustomerDetail,
@@ -22,10 +26,14 @@ from app.schemas import (
     FollowUpUpdate,
     HealthOut,
     ListResponse,
+    LoginInput,
+    LogoutOut,
     NotificationSummary,
     RangeQuery,
     ReportOut,
     ScheduleInput,
+    SignupInput,
+    UserOut,
 )
 from app.serializers import follow_up_out
 from app.services import customers, dashboard, follow_ups, reports
@@ -301,3 +309,125 @@ def download_report(
         media_type=media_type,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+def user_out(user: User) -> UserOut:
+    initials = "".join([part[0] for part in user.name.split()[:2]]).upper() or "U"
+    return UserOut(
+        id=str(user.id),
+        name=user.name,
+        email=user.email,
+        phone=user.phone,
+        role=user.role,
+        avatar_initials=initials,
+        created_at=user.created_at,
+        last_login_at=user.last_login_at,
+    )
+
+
+@router.post(
+    "/auth/login",
+    tags=["Auth"],
+    response_model=AuthOut,
+    summary="Login user and record login timestamp",
+)
+def login(payload: LoginInput, request: Request, session: SessionDep, now: NowDep) -> AuthOut:
+    email_clean = payload.email.strip().lower()
+    user = session.scalar(select(User).where(func.lower(User.email) == email_clean))
+
+    ip = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+
+    if not user or not verify_password(user.password_hash, payload.password):
+        login_log = LoginRecord(
+            user_id=user.id if user else None,
+            email=email_clean,
+            status="FAILED",
+            ip_address=ip,
+            user_agent=user_agent,
+            logged_in_at=now,
+        )
+        session.add(login_log)
+        session.commit()
+        raise HTTPException(400, "Invalid email or password.")
+
+    user.last_login_at = now
+    login_log = LoginRecord(
+        user_id=user.id,
+        email=email_clean,
+        status="SUCCESS",
+        ip_address=ip,
+        user_agent=user_agent,
+        logged_in_at=now,
+    )
+    session.add(login_log)
+    session.commit()
+
+    token = create_token()
+    return AuthOut(user=user_out(user), token=token, message="Login successful")
+
+
+@router.post(
+    "/auth/signup",
+    tags=["Auth"],
+    status_code=201,
+    response_model=AuthOut,
+    summary="Register a new user and create initial login record",
+)
+def signup(payload: SignupInput, request: Request, session: SessionDep, now: NowDep) -> AuthOut:
+    email_clean = payload.email.strip().lower()
+    existing = session.scalar(select(User).where(func.lower(User.email) == email_clean))
+    if existing:
+        raise HTTPException(400, "An account with this email already exists.")
+
+    new_user = User(
+        name=payload.name.strip(),
+        email=email_clean,
+        phone=payload.phone.strip() or None,
+        password_hash=hash_password(payload.password),
+        role="Administrator",
+        created_at=now,
+        last_login_at=now,
+    )
+    session.add(new_user)
+    session.flush()
+
+    ip = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    login_log = LoginRecord(
+        user_id=new_user.id,
+        email=email_clean,
+        status="SUCCESS",
+        ip_address=ip,
+        user_agent=user_agent,
+        logged_in_at=now,
+    )
+    session.add(login_log)
+    session.commit()
+
+    token = create_token()
+    return AuthOut(user=user_out(new_user), token=token, message="Account created successfully")
+
+
+@router.get(
+    "/auth/me",
+    tags=["Auth"],
+    response_model=UserOut,
+    summary="Get current user profile",
+)
+def get_me(session: SessionDep) -> UserOut:
+    user = session.scalar(select(User).order_by(User.id.asc()))
+    if not user:
+        raise HTTPException(404, "No user profile found.")
+    return user_out(user)
+
+
+@router.post(
+    "/auth/logout",
+    tags=["Auth"],
+    response_model=LogoutOut,
+    summary="Logout current user",
+)
+def logout() -> LogoutOut:
+    return LogoutOut(message="Logged out successfully")
+
