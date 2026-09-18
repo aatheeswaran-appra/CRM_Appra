@@ -1,0 +1,176 @@
+# =============================================================
+#  CRM Backend — .gitignore
+# =============================================================
+
+# -------------------------------------------------------------
+#  Python
+# -------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environment
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+MANIFEST
+pip-wheel-metadata/
+share/python-wheels/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+htmlcov/
+.tox/
+.nox/
+.pytest_cache/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Linting
+.ruff_cache/
+
+# pyenv
+.python-version
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+*.ipynb
+
+# IPython
+profile_default/
+ipython_config.py
+
+# -------------------------------------------------------------
+#  Environment & Secrets
+# -------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# -------------------------------------------------------------
+#  Alembic
+# -------------------------------------------------------------
+# Migration files are intentionally tracked — do NOT add migrations/ here
+
+# -------------------------------------------------------------
+#  Logs & Runtime
+# -------------------------------------------------------------
+*.log
+*.log.*
+logs/
+.server.log
+.server-error.log
+.startup-check.log
+
+# -------------------------------------------------------------
+#  Database
+# -------------------------------------------------------------
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+*.dump
+*.sql.gz
+
+# -------------------------------------------------------------
+#  VS Code
+# -------------------------------------------------------------
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+*.code-workspace
+
+# -------------------------------------------------------------
+#  JetBrains / PyCharm
+# -------------------------------------------------------------
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# -------------------------------------------------------------
+#  macOS
+# -------------------------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# -------------------------------------------------------------
+#  Windows
+# -------------------------------------------------------------
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+*.stackdump
+
+# -------------------------------------------------------------
+#  Linux
+# -------------------------------------------------------------
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# -------------------------------------------------------------
+#  Editors (Vim / Emacs / Sublime)
+# -------------------------------------------------------------
+[._]*.s[a-v][a-z]
+!*.svg
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+Session.vim
+.netrwhist
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+*.sublime-workspace
+*.sublime-project
+
+# -------------------------------------------------------------
+#  Misc
+# -------------------------------------------------------------
+*.bak
+*.tmp
+*.orig
+*.rej
+.cache/

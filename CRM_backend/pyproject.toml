@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "appra-crm-backend"
+version = "1.0.0"
+description = "Python REST backend for Appra CRM"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.35,<1",
+  "sqlalchemy>=2.0.43,<2.1",
+  "psycopg[binary]>=3.2,<4",
+  "alembic>=1.16,<2",
+  "pydantic>=2.11,<3",
+  "pydantic-settings>=2.10,<3",
+  "openpyxl>=3.1.5,<4",
+  "tzdata>=2025.2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.4,<10",
+  "pytest-cov>=6,<8",
+  "httpx>=0.28,<1",
+  "ruff>=0.12,<1",
+  "mypy>=1.17,<2",
+  "types-openpyxl>=3.1.5",
+  "build>=1.3,<2",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = ["integration: requires PostgreSQL; uses an isolated temporary schema"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["app"]
+
+[[tool.mypy.overrides]]
+module = "openpyxl.*"
+ignore_missing_imports = true

@@ -1,0 +1,4 @@
+include README.md FRONTEND_API_GUIDE.md UI_REQUIREMENTS.md .env.example alembic.ini openapi.json requirements*.txt
+recursive-include migrations *.py *.mako
+recursive-include scripts *.py
+recursive-include tests *.py

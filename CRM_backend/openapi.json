@@ -1,0 +1,3942 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Appra CRM API",
+    "description": "Python/PostgreSQL CRM. No authentication. All business dates use Asia/Kolkata. All timestamps are returned in UTC. Only customers and follow-ups are stored. Validation errors return HTTP 400.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Simple service health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                },
+                "example": {
+                  "status": "ok"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customers": {
+      "post": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "Create a customer and initial follow-up atomically",
+        "description": "All strings are trimmed. source defaults to OTHER, status to NEW and preferredContact to WHATSAPP.\nIf either insert fails, neither record is saved. Phone is stored as a string.",
+        "operationId": "create_customer_api_customers_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerCreate"
+              },
+              "example": {
+                "name": "Arun Kumar",
+                "phone": "+919876543210",
+                "requirement": "Website Development",
+                "source": "WEBSITE",
+                "location": "Coimbatore",
+                "notes": "Interested in company website",
+                "followUp": {
+                  "date": "2026-09-20",
+                  "time": "10:30",
+                  "preferredContact": "WHATSAPP"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponse_CustomerDetail_"
+                },
+                "example": {
+                  "data": {
+                    "id": 8,
+                    "name": "Arun Kumar",
+                    "phone": "+919876543210",
+                    "requirement": "Website Development",
+                    "source": "WEBSITE",
+                    "location": "Coimbatore",
+                    "notes": "Interested in company website",
+                    "status": "NEW",
+                    "closedAt": null,
+                    "createdAt": "2026-09-18T04:00:00Z",
+                    "updatedAt": "2026-09-18T04:00:00Z",
+                    "followUps": [
+                      {
+                        "id": 15,
+                        "customerId": 8,
+                        "customerName": "Arun Kumar",
+                        "phone": "+919876543210",
+                        "requirement": "Website Development",
+                        "followUpAt": "2026-09-20T05:00:00Z",
+                        "preferredContact": "WHATSAPP",
+                        "status": "PENDING",
+                        "notes": null,
+                        "rescheduleCount": 0,
+                        "completedAt": null,
+                        "createdAt": "2026-09-18T04:00:00Z",
+                        "updatedAt": "2026-09-18T04:00:00Z",
+                        "isOverdue": false
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "Search and filter customers with pagination",
+        "description": "Sort: createdAt descending, then id descending. Search matches name, phone or requirement.",
+        "operationId": "list_customers_api_customers_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Case-insensitive literal substring search across name, phone and requirement.",
+              "title": "Search"
+            },
+            "description": "Case-insensitive literal substring search across name, phone and requirement."
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/LeadStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/LeadSource"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse_CustomerOut_"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": 8,
+                      "name": "Arun Kumar",
+                      "phone": "+919876543210",
+                      "requirement": "Website Development",
+                      "source": "WEBSITE",
+                      "location": "Coimbatore",
+                      "notes": "Interested in company website",
+                      "status": "NEW",
+                      "closedAt": null,
+                      "createdAt": "2026-09-18T04:00:00Z",
+                      "updatedAt": "2026-09-18T04:00:00Z"
+                    }
+                  ],
+                  "pagination": {
+                    "page": 1,
+                    "limit": 20,
+                    "total": 1,
+                    "totalPages": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customers/{id}": {
+      "get": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "Get a customer with all follow-ups",
+        "operationId": "get_customer_api_customers__id__get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$",
+              "description": "Positive 32-bit integer ID.",
+              "examples": [
+                "1"
+              ],
+              "title": "Id"
+            },
+            "description": "Positive 32-bit integer ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponse_CustomerDetail_"
+                },
+                "example": {
+                  "data": {
+                    "id": 8,
+                    "name": "Arun Kumar",
+                    "phone": "+919876543210",
+                    "requirement": "Website Development",
+                    "source": "WEBSITE",
+                    "location": "Coimbatore",
+                    "notes": "Interested in company website",
+                    "status": "NEW",
+                    "closedAt": null,
+                    "createdAt": "2026-09-18T04:00:00Z",
+                    "updatedAt": "2026-09-18T04:00:00Z",
+                    "followUps": [
+                      {
+                        "id": 15,
+                        "customerId": 8,
+                        "customerName": "Arun Kumar",
+                        "phone": "+919876543210",
+                        "requirement": "Website Development",
+                        "followUpAt": "2026-09-20T05:00:00Z",
+                        "preferredContact": "WHATSAPP",
+                        "status": "PENDING",
+                        "notes": null,
+                        "rescheduleCount": 0,
+                        "completedAt": null,
+                        "createdAt": "2026-09-18T04:00:00Z",
+                        "updatedAt": "2026-09-18T04:00:00Z",
+                        "isOverdue": false
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "Update customer details or status",
+        "description": "Any valid status transition is allowed. Entering CLOSED sets closedAt; leaving it clears closedAt.\nSending CLOSED again preserves the first closure time. Only location and notes accept null.",
+        "operationId": "update_customer_api_customers__id__patch",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$",
+              "description": "Positive 32-bit integer ID.",
+              "examples": [
+                "1"
+              ],
+              "title": "Id"
+            },
+            "description": "Positive 32-bit integer ID."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerUpdate"
+              },
+              "example": {
+                "status": "CLOSED",
+                "notes": "Project confirmed"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponse_CustomerOut_"
+                },
+                "example": {
+                  "data": {
+                    "id": 8,
+                    "name": "Arun Kumar",
+                    "phone": "+919876543210",
+                    "requirement": "Website Development",
+                    "source": "WEBSITE",
+                    "location": "Coimbatore",
+                    "notes": "Interested in company website",
+                    "status": "CLOSED",
+                    "closedAt": "2026-09-18T06:30:00Z",
+                    "createdAt": "2026-09-18T04:00:00Z",
+                    "updatedAt": "2026-09-18T04:00:00Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "Delete a customer and cascade-delete its follow-ups",
+        "operationId": "delete_customer_api_customers__id__delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$",
+              "description": "Positive 32-bit integer ID.",
+              "examples": [
+                "1"
+              ],
+              "title": "Id"
+            },
+            "description": "Positive 32-bit integer ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponse_DeletedResult_"
+                },
+                "example": {
+                  "data": {
+                    "id": 8,
+                    "deleted": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/follow-ups": {
+      "post": {
+        "tags": [
+          "Follow-ups"
+        ],
+        "summary": "Schedule a follow-up for an existing customer",
+        "operationId": "create_follow_up_api_follow_ups_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowUpCreate"
+              },
+              "example": {
+                "customerId": 8,
+                "date": "2026-09-20",
+                "time": "10:30",
+                "preferredContact": "WHATSAPP"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponse_FollowUpOut_"
+                },
+                "example": {
+                  "data": {
+                    "id": 15,
+                    "customerId": 8,
+                    "customerName": "Arun Kumar",
+                    "phone": "+919876543210",
+                    "requirement": "Website Development",
+                    "followUpAt": "2026-09-20T05:00:00Z",
+                    "preferredContact": "WHATSAPP",
+                    "status": "PENDING",
+                    "notes": null,
+                    "rescheduleCount": 0,
+                    "completedAt": null,
+                    "createdAt": "2026-09-18T04:00:00Z",
+                    "updatedAt": "2026-09-18T04:00:00Z",
+                    "isOverdue": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Follow-ups"
+        ],
+        "summary": "List, search and filter follow-ups",
+        "description": "Sort: followUpAt ascending, then id ascending. Type filters require PENDING status.\ntoday is the full Asia/Kolkata day and includes today's already-overdue records.\noverdue is strictly before now; upcoming is strictly after now. Date ranges use inclusive business dates.",
+        "operationId": "list_follow_ups_api_follow_ups_get",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive first business date; supply from and to together. Maximum 366 days.",
+              "title": "From"
+            },
+            "description": "Inclusive first business date; supply from and to together. Maximum 366 days."
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive last business date.",
+              "title": "To"
+            },
+            "description": "Inclusive last business date."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000000,
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FollowUpType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "today: pending within the business day; overdue: pending before now; upcoming: pending after now. Today and overdue may overlap.",
+              "title": "Type"
+            },
+            "description": "today: pending within the business day; overdue: pending before now; upcoming: pending after now. Today and overdue may overlap."
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FollowUpStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2147483647,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Customerid"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "An inclusive business date; cannot combine with from/to.",
+              "title": "Date"
+            },
+            "description": "An inclusive business date; cannot combine with from/to."
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search customer name, phone or requirement.",
+              "title": "Search"
+            },
+            "description": "Search customer name, phone or requirement."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse_FollowUpOut_"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": 15,
+                      "customerId": 8,
+                      "customerName": "Arun Kumar",
+                      "phone": "+919876543210",
+                      "requirement": "Website Development",
+                      "followUpAt": "2026-09-20T05:00:00Z",
+                      "preferredContact": "WHATSAPP",
+                      "status": "PENDING",
+                      "notes": null,
+                      "rescheduleCount": 0,
+                      "completedAt": null,
+                      "createdAt": "2026-09-18T04:00:00Z",
+                      "updatedAt": "2026-09-18T04:00:00Z",
+                      "isOverdue": false
+                    }
+                  ],
+                  "pagination": {
+                    "page": 1,
+                    "limit": 20,
+                    "total": 1,
+                    "totalPages": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/follow-ups/calendar": {
+      "get": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Get all calendar entries for an inclusive date range",
+        "description": "Includes PENDING and COMPLETED follow-ups. Unpaginated, with a maximum 366-day range.",
+        "operationId": "calendar_api_follow_ups_calendar_get",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Inclusive first business date. Maximum range 366 days.",
+              "examples": [
+                "2026-09-01"
+              ],
+              "title": "From"
+            },
+            "description": "Inclusive first business date. Maximum range 366 days."
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "examples": [
+                "2026-09-30"
+              ],
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponse_list_FollowUpOut__"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": 15,
+                      "customerId": 8,
+                      "customerName": "Arun Kumar",
+                      "phone": "+919876543210",
+                      "requirement": "Website Development",
+                      "followUpAt": "2026-09-20T05:00:00Z",
+                      "preferredContact": "WHATSAPP",
+                      "status": "PENDING",
+                      "notes": null,
+                      "rescheduleCount": 0,
+                      "completedAt": null,
+                      "createdAt": "2026-09-18T04:00:00Z",
+                      "updatedAt": "2026-09-18T04:00:00Z",
+                      "isOverdue": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/follow-ups/notification-summary": {
+      "get": {
+        "tags": [
+          "Follow-ups"
+        ],
+        "summary": "Get calculated today and overdue badge counts",
+        "description": "total is today + overdue. These sets overlap for pending appointments earlier today.",
+        "operationId": "notifications_api_follow_ups_notification_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponse_NotificationSummary_"
+                },
+                "example": {
+                  "data": {
+                    "today": 8,
+                    "overdue": 3,
+                    "total": 11
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/follow-ups/{id}": {
+      "get": {
+        "tags": [
+          "Follow-ups"
+        ],
+        "summary": "Get follow-up details with customer contact data",
+        "operationId": "get_follow_up_api_follow_ups__id__get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$",
+              "description": "Positive 32-bit integer ID.",
+              "examples": [
+                "1"
+              ],
+              "title": "Id"
+            },
+            "description": "Positive 32-bit integer ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponse_FollowUpOut_"
+                },
+                "example": {
+                  "data": {
+                    "id": 15,
+                    "customerId": 8,
+                    "customerName": "Arun Kumar",
+                    "phone": "+919876543210",
+                    "requirement": "Website Development",
+                    "followUpAt": "2026-09-20T05:00:00Z",
+                    "preferredContact": "WHATSAPP",
+                    "status": "PENDING",
+                    "notes": null,
+                    "rescheduleCount": 0,
+                    "completedAt": null,
+                    "createdAt": "2026-09-18T04:00:00Z",
+                    "updatedAt": "2026-09-18T04:00:00Z",
+                    "isOverdue": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Follow-ups"
+        ],
+        "summary": "Edit follow-up notes, contact preference or schedule",
+        "description": "Provide date and time together to reschedule (same rules as /reschedule).\nOmitted fields remain unchanged; notes may be null. Use /complete to complete a follow-up.",
+        "operationId": "update_follow_up_api_follow_ups__id__patch",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$",
+              "description": "Positive 32-bit integer ID.",
+              "examples": [
+                "1"
+              ],
+              "title": "Id"
+            },
+            "description": "Positive 32-bit integer ID."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowUpUpdate"
+              },
+              "example": {
+                "notes": "Send proposal",
+                "preferredContact": "CALL"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponse_FollowUpOut_"
+                },
+                "example": {
+                  "data": {
+                    "id": 15,
+                    "customerId": 8,
+                    "customerName": "Arun Kumar",
+                    "phone": "+919876543210",
+                    "requirement": "Website Development",
+                    "followUpAt": "2026-09-20T05:00:00Z",
+                    "preferredContact": "CALL",
+                    "status": "PENDING",
+                    "notes": "Send proposal",
+                    "rescheduleCount": 0,
+                    "completedAt": null,
+                    "createdAt": "2026-09-18T04:00:00Z",
+                    "updatedAt": "2026-09-18T04:00:00Z",
+                    "isOverdue": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Follow-ups"
+        ],
+        "summary": "Delete one follow-up",
+        "operationId": "delete_follow_up_api_follow_ups__id__delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$",
+              "description": "Positive 32-bit integer ID.",
+              "examples": [
+                "1"
+              ],
+              "title": "Id"
+            },
+            "description": "Positive 32-bit integer ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponse_DeletedResult_"
+                },
+                "example": {
+                  "data": {
+                    "id": 15,
+                    "deleted": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/follow-ups/{id}/complete": {
+      "patch": {
+        "tags": [
+          "Follow-ups"
+        ],
+        "summary": "Mark a follow-up complete",
+        "description": "No body required. Repeated completion is idempotent and preserves completedAt.",
+        "operationId": "complete_follow_up_api_follow_ups__id__complete_patch",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$",
+              "description": "Positive 32-bit integer ID.",
+              "examples": [
+                "1"
+              ],
+              "title": "Id"
+            },
+            "description": "Positive 32-bit integer ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponse_FollowUpOut_"
+                },
+                "example": {
+                  "data": {
+                    "id": 15,
+                    "customerId": 8,
+                    "customerName": "Arun Kumar",
+                    "phone": "+919876543210",
+                    "requirement": "Website Development",
+                    "followUpAt": "2026-09-20T05:00:00Z",
+                    "preferredContact": "WHATSAPP",
+                    "status": "COMPLETED",
+                    "notes": null,
+                    "rescheduleCount": 0,
+                    "completedAt": "2026-09-18T06:30:00Z",
+                    "createdAt": "2026-09-18T04:00:00Z",
+                    "updatedAt": "2026-09-18T04:00:00Z",
+                    "isOverdue": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/follow-ups/{id}/reschedule": {
+      "patch": {
+        "tags": [
+          "Follow-ups"
+        ],
+        "summary": "Reschedule and increment rescheduleCount",
+        "description": "Sets PENDING, clears completedAt, and atomically increments rescheduleCount.\nCompleted follow-ups may be reopened this way. Retrying a successful reschedule increments again.",
+        "operationId": "reschedule_follow_up_api_follow_ups__id__reschedule_patch",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$",
+              "description": "Positive 32-bit integer ID.",
+              "examples": [
+                "1"
+              ],
+              "title": "Id"
+            },
+            "description": "Positive 32-bit integer ID."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleInput"
+              },
+              "example": {
+                "date": "2026-09-22",
+                "time": "15:30"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponse_FollowUpOut_"
+                },
+                "example": {
+                  "data": {
+                    "id": 15,
+                    "customerId": 8,
+                    "customerName": "Arun Kumar",
+                    "phone": "+919876543210",
+                    "requirement": "Website Development",
+                    "followUpAt": "2026-09-22T10:00:00Z",
+                    "preferredContact": "WHATSAPP",
+                    "status": "PENDING",
+                    "notes": null,
+                    "rescheduleCount": 1,
+                    "completedAt": null,
+                    "createdAt": "2026-09-18T04:00:00Z",
+                    "updatedAt": "2026-09-18T04:00:00Z",
+                    "isOverdue": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboard": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Get all dashboard cards and preview lists",
+        "description": "Live totals plus five recent customers, five today's pending follow-ups and five oldest overdue follow-ups.\nPercentage changes compare this calendar month with the previous full month.\nZero-baseline convention: 0 to 0 = 0%, 0 to a positive count = 100%.",
+        "operationId": "get_dashboard_api_dashboard_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponse_DashboardOut_"
+                },
+                "example": {
+                  "data": {
+                    "stats": {
+                      "totalCustomers": 128,
+                      "totalCustomersChange": 12,
+                      "followUpsToday": 8,
+                      "overdueFollowUps": 3,
+                      "closedCustomers": 24,
+                      "closedCustomersChange": 8
+                    },
+                    "recentCustomers": [
+                      {
+                        "id": 8,
+                        "name": "Arun Kumar",
+                        "phone": "+919876543210",
+                        "requirement": "Website Development",
+                        "source": "WEBSITE",
+                        "location": "Coimbatore",
+                        "notes": "Interested in company website",
+                        "status": "NEW",
+                        "closedAt": null,
+                        "createdAt": "2026-09-18T04:00:00Z",
+                        "updatedAt": "2026-09-18T04:00:00Z"
+                      }
+                    ],
+                    "todayFollowUps": [
+                      {
+                        "id": 15,
+                        "customerId": 8,
+                        "customerName": "Arun Kumar",
+                        "phone": "+919876543210",
+                        "requirement": "Website Development",
+                        "followUpAt": "2026-09-18T12:00:00Z",
+                        "preferredContact": "WHATSAPP",
+                        "status": "PENDING",
+                        "notes": null,
+                        "rescheduleCount": 0,
+                        "completedAt": null,
+                        "createdAt": "2026-09-18T04:00:00Z",
+                        "updatedAt": "2026-09-18T04:00:00Z",
+                        "isOverdue": false
+                      }
+                    ],
+                    "overdueFollowUps": [
+                      {
+                        "id": 14,
+                        "customerId": 8,
+                        "customerName": "Arun Kumar",
+                        "phone": "+919876543210",
+                        "requirement": "Website Development",
+                        "followUpAt": "2026-09-17T12:00:00Z",
+                        "preferredContact": "WHATSAPP",
+                        "status": "PENDING",
+                        "notes": null,
+                        "rescheduleCount": 0,
+                        "completedAt": null,
+                        "createdAt": "2026-09-18T04:00:00Z",
+                        "updatedAt": "2026-09-18T04:00:00Z",
+                        "isOverdue": true
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Generate report metrics and chart data",
+        "description": "Defaults to this calendar month. Full-month reports compare with the previous full month;\nother ranges compare with the immediately preceding equal number of days.\nLead charts use customers created in the range. Conversion counts those same leads that are currently\nCLOSED with closedAt in the range. Completion counts completed due follow-ups divided by all due\nfollow-ups in the range (future appointments excluded). Rate changes are percentage points.\nPerformance counts are live except completionRate. See FRONTEND_API_GUIDE.md for all definitions.",
+        "operationId": "get_reports_api_reports_get",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive first business date; supply from and to together. Maximum 366 days.",
+              "title": "From"
+            },
+            "description": "Inclusive first business date; supply from and to together. Maximum 366 days."
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive last business date.",
+              "title": "To"
+            },
+            "description": "Inclusive last business date."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResponse_ReportOut_"
+                },
+                "example": {
+                  "data": {
+                    "period": {
+                      "from": "2026-09-01",
+                      "to": "2026-09-30",
+                      "timezone": "Asia/Kolkata",
+                      "comparisonFrom": "2026-08-01",
+                      "comparisonTo": "2026-08-31"
+                    },
+                    "summary": {
+                      "totalLeads": 4,
+                      "totalLeadsChange": 100,
+                      "interestedLeads": 2,
+                      "interestedLeadsChange": 100,
+                      "conversionRate": 25,
+                      "conversionRateChange": 25,
+                      "followUpCompletionRate": 50,
+                      "followUpCompletionRateChange": 25
+                    },
+                    "leadGrowth": [
+                      {
+                        "label": "Week 1",
+                        "count": 1
+                      },
+                      {
+                        "label": "Week 2",
+                        "count": 1
+                      },
+                      {
+                        "label": "Week 3",
+                        "count": 2
+                      },
+                      {
+                        "label": "Week 4",
+                        "count": 0
+                      },
+                      {
+                        "label": "Week 5",
+                        "count": 0
+                      }
+                    ],
+                    "leadSources": [
+                      {
+                        "source": "WEBSITE",
+                        "count": 2,
+                        "percentage": 50
+                      },
+                      {
+                        "source": "WHATSAPP",
+                        "count": 1,
+                        "percentage": 25
+                      },
+                      {
+                        "source": "REFERRAL",
+                        "count": 1,
+                        "percentage": 25
+                      },
+                      {
+                        "source": "INSTAGRAM",
+                        "count": 0,
+                        "percentage": 0
+                      },
+                      {
+                        "source": "CALL",
+                        "count": 0,
+                        "percentage": 0
+                      },
+                      {
+                        "source": "OTHER",
+                        "count": 0,
+                        "percentage": 0
+                      }
+                    ],
+                    "statusBreakdown": [
+                      {
+                        "status": "NEW",
+                        "count": 1
+                      },
+                      {
+                        "status": "CONTACTED",
+                        "count": 0
+                      },
+                      {
+                        "status": "INTERESTED",
+                        "count": 2
+                      },
+                      {
+                        "status": "FOLLOW_UP",
+                        "count": 0
+                      },
+                      {
+                        "status": "CLOSED",
+                        "count": 1
+                      },
+                      {
+                        "status": "NOT_INTERESTED",
+                        "count": 0
+                      }
+                    ],
+                    "topRequirements": [
+                      {
+                        "requirement": "Website Development",
+                        "count": 2
+                      },
+                      {
+                        "requirement": "Digital Marketing",
+                        "count": 1
+                      },
+                      {
+                        "requirement": "SEO",
+                        "count": 1
+                      }
+                    ],
+                    "followUpPerformance": {
+                      "completedToday": 2,
+                      "upcoming": 1,
+                      "overdue": 5,
+                      "rescheduled": 2,
+                      "completionRate": 50
+                    },
+                    "highlights": [
+                      {
+                        "metric": "conversionRate",
+                        "message": "Conversion rate is 25%; change +25 percentage points.",
+                        "current": 25,
+                        "previous": 0,
+                        "change": 25,
+                        "unit": "percentage_points"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/export": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Download a report as CSV or XLSX",
+        "description": "Contains the selected report's period, summary, chart data, performance and highlights.\nSame range defaults as GET /reports. format defaults to csv. Nothing is persisted.",
+        "operationId": "download_report_api_reports_export_get",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive first business date; supply from and to together. Maximum 366 days.",
+              "title": "From"
+            },
+            "description": "Inclusive first business date; supply from and to together. Maximum 366 days."
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive last business date.",
+              "title": "To"
+            },
+            "description": "Inclusive last business date."
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ExportFormat",
+              "default": "csv"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "In-memory report download, with a Content-Disposition attachment filename.",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, query parameters, range, or ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request. Check fields, enums, IDs and date ranges.",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Customer or follow-up not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Customer or follow-up not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Concurrent update conflict; retry the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 409,
+                  "message": "The record changed concurrently. Please retry the operation.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error; no private details exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "statusCode": 500,
+                  "message": "An unexpected server error occurred.",
+                  "error": "Internal Server Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ContactMethod": {
+        "type": "string",
+        "enum": [
+          "WHATSAPP",
+          "CALL",
+          "EITHER"
+        ],
+        "title": "ContactMethod"
+      },
+      "CustomerCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "examples": [
+              "Arun Kumar"
+            ]
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 7,
+            "title": "Phone",
+            "description": "String; preserves country code and leading zeroes. 7-15 digits with optional +, spaces, parentheses, hyphens.",
+            "examples": [
+              "+919876543210"
+            ]
+          },
+          "requirement": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Requirement",
+            "examples": [
+              "Website Development"
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/LeadSource",
+            "default": "OTHER",
+            "examples": [
+              "WEBSITE"
+            ]
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location",
+            "examples": [
+              "Coimbatore"
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "examples": [
+              "Interested in company website"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/LeadStatus",
+            "default": "NEW"
+          },
+          "followUp": {
+            "$ref": "#/components/schemas/InitialFollowUp",
+            "description": "Required initial follow-up; created in the same transaction as the customer."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "phone",
+          "requirement",
+          "followUp"
+        ],
+        "title": "CustomerCreate"
+      },
+      "CustomerDetail": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone"
+          },
+          "requirement": {
+            "type": "string",
+            "title": "Requirement"
+          },
+          "source": {
+            "$ref": "#/components/schemas/LeadSource"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LeadStatus"
+          },
+          "closedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closedat"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          },
+          "followUps": {
+            "items": {
+              "$ref": "#/components/schemas/FollowUpOut"
+            },
+            "type": "array",
+            "title": "Followups"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "phone",
+          "requirement",
+          "source",
+          "location",
+          "notes",
+          "status",
+          "closedAt",
+          "createdAt",
+          "updatedAt",
+          "followUps"
+        ],
+        "title": "CustomerDetail"
+      },
+      "CustomerOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone"
+          },
+          "requirement": {
+            "type": "string",
+            "title": "Requirement"
+          },
+          "source": {
+            "$ref": "#/components/schemas/LeadSource"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LeadStatus"
+          },
+          "closedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closedat"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "phone",
+          "requirement",
+          "source",
+          "location",
+          "notes",
+          "status",
+          "closedAt",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "CustomerOut"
+      },
+      "CustomerUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "examples": [
+              "Arun Kumar"
+            ]
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32,
+                "minLength": 7
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone",
+            "examples": [
+              "+919876543210"
+            ]
+          },
+          "requirement": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requirement",
+            "examples": [
+              "Website Development"
+            ]
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LeadSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LeadStatus"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Any valid status; CLOSED sets closedAt, leaving CLOSED clears it."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CustomerUpdate"
+      },
+      "DashboardOut": {
+        "properties": {
+          "stats": {
+            "$ref": "#/components/schemas/DashboardStats"
+          },
+          "recentCustomers": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerOut"
+            },
+            "type": "array",
+            "title": "Recentcustomers"
+          },
+          "todayFollowUps": {
+            "items": {
+              "$ref": "#/components/schemas/FollowUpOut"
+            },
+            "type": "array",
+            "title": "Todayfollowups"
+          },
+          "overdueFollowUps": {
+            "items": {
+              "$ref": "#/components/schemas/FollowUpOut"
+            },
+            "type": "array",
+            "title": "Overduefollowups"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "stats",
+          "recentCustomers",
+          "todayFollowUps",
+          "overdueFollowUps"
+        ],
+        "title": "DashboardOut"
+      },
+      "DashboardStats": {
+        "properties": {
+          "totalCustomers": {
+            "type": "integer",
+            "title": "Totalcustomers"
+          },
+          "totalCustomersChange": {
+            "type": "number",
+            "title": "Totalcustomerschange",
+            "description": "Percent change in customers created this calendar month versus previous full calendar month."
+          },
+          "followUpsToday": {
+            "type": "integer",
+            "title": "Followupstoday"
+          },
+          "overdueFollowUps": {
+            "type": "integer",
+            "title": "Overduefollowups"
+          },
+          "closedCustomers": {
+            "type": "integer",
+            "title": "Closedcustomers"
+          },
+          "closedCustomersChange": {
+            "type": "number",
+            "title": "Closedcustomerschange",
+            "description": "Percent change in CLOSED customers by closedAt this month versus last month."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "totalCustomers",
+          "totalCustomersChange",
+          "followUpsToday",
+          "overdueFollowUps",
+          "closedCustomers",
+          "closedCustomersChange"
+        ],
+        "title": "DashboardStats"
+      },
+      "DataResponse_CustomerDetail_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerDetail"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "DataResponse[CustomerDetail]"
+      },
+      "DataResponse_CustomerOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerOut"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "DataResponse[CustomerOut]"
+      },
+      "DataResponse_DashboardOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DashboardOut"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "DataResponse[DashboardOut]"
+      },
+      "DataResponse_DeletedResult_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DeletedResult"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "DataResponse[DeletedResult]"
+      },
+      "DataResponse_FollowUpOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FollowUpOut"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "DataResponse[FollowUpOut]"
+      },
+      "DataResponse_NotificationSummary_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/NotificationSummary"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "DataResponse[NotificationSummary]"
+      },
+      "DataResponse_ReportOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ReportOut"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "DataResponse[ReportOut]"
+      },
+      "DataResponse_list_FollowUpOut__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/FollowUpOut"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "DataResponse[list[FollowUpOut]]"
+      },
+      "DeletedResult": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "deleted": {
+            "type": "boolean",
+            "const": true,
+            "title": "Deleted",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "DeletedResult"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "statusCode": {
+            "type": "integer",
+            "title": "Statuscode",
+            "examples": [
+              400
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Message",
+            "examples": [
+              "Invalid request."
+            ]
+          },
+          "error": {
+            "type": "string",
+            "title": "Error",
+            "examples": [
+              "Bad Request"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "statusCode",
+          "message",
+          "error"
+        ],
+        "title": "ErrorResponse"
+      },
+      "ExportFormat": {
+        "type": "string",
+        "enum": [
+          "csv",
+          "xlsx"
+        ],
+        "title": "ExportFormat"
+      },
+      "FollowUpCreate": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date",
+            "description": "Business date in Asia/Kolkata: YYYY-MM-DD.",
+            "examples": [
+              "2026-09-20"
+            ]
+          },
+          "time": {
+            "type": "string",
+            "format": "time",
+            "title": "Time",
+            "description": "Business time in Asia/Kolkata: HH:mm, 24-hour format.",
+            "examples": [
+              "10:30"
+            ]
+          },
+          "preferredContact": {
+            "$ref": "#/components/schemas/ContactMethod",
+            "default": "WHATSAPP",
+            "examples": [
+              "WHATSAPP"
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "examples": [
+              "Share the website proposal."
+            ]
+          },
+          "customerId": {
+            "type": "integer",
+            "maximum": 2147483647.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Customerid",
+            "examples": [
+              8
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "date",
+          "time",
+          "customerId"
+        ],
+        "title": "FollowUpCreate"
+      },
+      "FollowUpOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "customerId": {
+            "type": "integer",
+            "title": "Customerid"
+          },
+          "customerName": {
+            "type": "string",
+            "title": "Customername"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone"
+          },
+          "requirement": {
+            "type": "string",
+            "title": "Requirement"
+          },
+          "followUpAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Followupat"
+          },
+          "preferredContact": {
+            "$ref": "#/components/schemas/ContactMethod"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FollowUpStatus"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "rescheduleCount": {
+            "type": "integer",
+            "title": "Reschedulecount"
+          },
+          "completedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completedat"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          },
+          "isOverdue": {
+            "type": "boolean",
+            "title": "Isoverdue",
+            "description": "Calculated at request time: PENDING and followUpAt < now; never stored."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "customerId",
+          "customerName",
+          "phone",
+          "requirement",
+          "followUpAt",
+          "preferredContact",
+          "status",
+          "notes",
+          "rescheduleCount",
+          "completedAt",
+          "createdAt",
+          "updatedAt",
+          "isOverdue"
+        ],
+        "title": "FollowUpOut"
+      },
+      "FollowUpPerformance": {
+        "properties": {
+          "completedToday": {
+            "type": "integer",
+            "title": "Completedtoday"
+          },
+          "upcoming": {
+            "type": "integer",
+            "title": "Upcoming"
+          },
+          "overdue": {
+            "type": "integer",
+            "title": "Overdue"
+          },
+          "rescheduled": {
+            "type": "integer",
+            "title": "Rescheduled",
+            "description": "Current number of follow-up records with rescheduleCount > 0; not a historical event count."
+          },
+          "completionRate": {
+            "type": "number",
+            "title": "Completionrate",
+            "description": "Completion rate of due follow-ups in the selected report range; other performance counts are live across all records."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "completedToday",
+          "upcoming",
+          "overdue",
+          "rescheduled",
+          "completionRate"
+        ],
+        "title": "FollowUpPerformance"
+      },
+      "FollowUpStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "COMPLETED"
+        ],
+        "title": "FollowUpStatus"
+      },
+      "FollowUpType": {
+        "type": "string",
+        "enum": [
+          "today",
+          "overdue",
+          "upcoming"
+        ],
+        "title": "FollowUpType"
+      },
+      "FollowUpUpdate": {
+        "properties": {
+          "date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date",
+            "examples": [
+              "2026-09-22"
+            ]
+          },
+          "time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time",
+            "examples": [
+              "15:30"
+            ]
+          },
+          "preferredContact": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ContactMethod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "FollowUpUpdate"
+      },
+      "GrowthBucket": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "label",
+          "count"
+        ],
+        "title": "GrowthBucket"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthOut": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status",
+            "default": "ok"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "HealthOut"
+      },
+      "InitialFollowUp": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date",
+            "description": "Business date in Asia/Kolkata: YYYY-MM-DD.",
+            "examples": [
+              "2026-09-20"
+            ]
+          },
+          "time": {
+            "type": "string",
+            "format": "time",
+            "title": "Time",
+            "description": "Business time in Asia/Kolkata: HH:mm, 24-hour format.",
+            "examples": [
+              "10:30"
+            ]
+          },
+          "preferredContact": {
+            "$ref": "#/components/schemas/ContactMethod",
+            "default": "WHATSAPP",
+            "examples": [
+              "WHATSAPP"
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "examples": [
+              "Share the website proposal."
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "date",
+          "time"
+        ],
+        "title": "InitialFollowUp"
+      },
+      "LeadSource": {
+        "type": "string",
+        "enum": [
+          "WEBSITE",
+          "WHATSAPP",
+          "REFERRAL",
+          "INSTAGRAM",
+          "CALL",
+          "OTHER"
+        ],
+        "title": "LeadSource"
+      },
+      "LeadStatus": {
+        "type": "string",
+        "enum": [
+          "NEW",
+          "CONTACTED",
+          "INTERESTED",
+          "FOLLOW_UP",
+          "CLOSED",
+          "NOT_INTERESTED"
+        ],
+        "title": "LeadStatus"
+      },
+      "ListResponse_CustomerOut_": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerOut"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "data",
+          "pagination"
+        ],
+        "title": "ListResponse[CustomerOut]"
+      },
+      "ListResponse_FollowUpOut_": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/FollowUpOut"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "data",
+          "pagination"
+        ],
+        "title": "ListResponse[FollowUpOut]"
+      },
+      "NotificationSummary": {
+        "properties": {
+          "today": {
+            "type": "integer",
+            "title": "Today"
+          },
+          "overdue": {
+            "type": "integer",
+            "title": "Overdue"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "today + overdue, as requested; today's past-due entries occur in both counts."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "today",
+          "overdue",
+          "total"
+        ],
+        "title": "NotificationSummary"
+      },
+      "Pagination": {
+        "properties": {
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "totalPages": {
+            "type": "integer",
+            "title": "Totalpages"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages"
+        ],
+        "title": "Pagination"
+      },
+      "ReportHighlight": {
+        "properties": {
+          "metric": {
+            "type": "string",
+            "title": "Metric"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "current": {
+            "type": "number",
+            "title": "Current"
+          },
+          "previous": {
+            "type": "number",
+            "title": "Previous"
+          },
+          "change": {
+            "type": "number",
+            "title": "Change"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "percent",
+              "percentage_points"
+            ],
+            "title": "Unit"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "metric",
+          "message",
+          "current",
+          "previous",
+          "change",
+          "unit"
+        ],
+        "title": "ReportHighlight"
+      },
+      "ReportOut": {
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/ReportPeriod"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ReportSummary"
+          },
+          "leadGrowth": {
+            "items": {
+              "$ref": "#/components/schemas/GrowthBucket"
+            },
+            "type": "array",
+            "title": "Leadgrowth"
+          },
+          "leadSources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceCount"
+            },
+            "type": "array",
+            "title": "Leadsources"
+          },
+          "statusBreakdown": {
+            "items": {
+              "$ref": "#/components/schemas/StatusCount"
+            },
+            "type": "array",
+            "title": "Statusbreakdown"
+          },
+          "topRequirements": {
+            "items": {
+              "$ref": "#/components/schemas/RequirementCount"
+            },
+            "type": "array",
+            "title": "Toprequirements"
+          },
+          "followUpPerformance": {
+            "$ref": "#/components/schemas/FollowUpPerformance"
+          },
+          "highlights": {
+            "items": {
+              "$ref": "#/components/schemas/ReportHighlight"
+            },
+            "type": "array",
+            "title": "Highlights"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "period",
+          "summary",
+          "leadGrowth",
+          "leadSources",
+          "statusBreakdown",
+          "topRequirements",
+          "followUpPerformance",
+          "highlights"
+        ],
+        "title": "ReportOut"
+      },
+      "ReportPeriod": {
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date",
+            "title": "From"
+          },
+          "to": {
+            "type": "string",
+            "format": "date",
+            "title": "To"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone",
+            "default": "Asia/Kolkata"
+          },
+          "comparisonFrom": {
+            "type": "string",
+            "format": "date",
+            "title": "Comparisonfrom"
+          },
+          "comparisonTo": {
+            "type": "string",
+            "format": "date",
+            "title": "Comparisonto"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "from",
+          "to",
+          "comparisonFrom",
+          "comparisonTo"
+        ],
+        "title": "ReportPeriod"
+      },
+      "ReportSummary": {
+        "properties": {
+          "totalLeads": {
+            "type": "integer",
+            "title": "Totalleads"
+          },
+          "totalLeadsChange": {
+            "type": "number",
+            "title": "Totalleadschange"
+          },
+          "interestedLeads": {
+            "type": "integer",
+            "title": "Interestedleads"
+          },
+          "interestedLeadsChange": {
+            "type": "number",
+            "title": "Interestedleadschange"
+          },
+          "conversionRate": {
+            "type": "number",
+            "title": "Conversionrate"
+          },
+          "conversionRateChange": {
+            "type": "number",
+            "title": "Conversionratechange",
+            "description": "Percentage-point difference from the previous period."
+          },
+          "followUpCompletionRate": {
+            "type": "number",
+            "title": "Followupcompletionrate"
+          },
+          "followUpCompletionRateChange": {
+            "type": "number",
+            "title": "Followupcompletionratechange",
+            "description": "Percentage-point difference from the previous period."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "totalLeads",
+          "totalLeadsChange",
+          "interestedLeads",
+          "interestedLeadsChange",
+          "conversionRate",
+          "conversionRateChange",
+          "followUpCompletionRate",
+          "followUpCompletionRateChange"
+        ],
+        "title": "ReportSummary"
+      },
+      "RequirementCount": {
+        "properties": {
+          "requirement": {
+            "type": "string",
+            "title": "Requirement"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "requirement",
+          "count"
+        ],
+        "title": "RequirementCount"
+      },
+      "ScheduleInput": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date",
+            "description": "Business date in Asia/Kolkata: YYYY-MM-DD.",
+            "examples": [
+              "2026-09-20"
+            ]
+          },
+          "time": {
+            "type": "string",
+            "format": "time",
+            "title": "Time",
+            "description": "Business time in Asia/Kolkata: HH:mm, 24-hour format.",
+            "examples": [
+              "10:30"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "date",
+          "time"
+        ],
+        "title": "ScheduleInput"
+      },
+      "SourceCount": {
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/LeadSource"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "percentage": {
+            "type": "number",
+            "title": "Percentage"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source",
+          "count",
+          "percentage"
+        ],
+        "title": "SourceCount"
+      },
+      "StatusCount": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/LeadStatus"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "count"
+        ],
+        "title": "StatusCount"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
